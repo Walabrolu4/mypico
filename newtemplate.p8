@@ -1,7 +1,6 @@
 pico-8 cartridge // http://www.pico-8.com
 version 29
 __lua__
-
 --init
 game_states={
  menu = 0,
@@ -138,8 +137,11 @@ function draw_game()
 	map(0,0)
 	for p in all(players) do
 		plr_draw(p)
-		print(""..tostr(p.falling))
+		
+		print(""..tostr(p.grav_mul))
+		print(""..tostr(p.flapping))
 	end
+	
 end
 --game over
 
@@ -159,8 +161,8 @@ function make_gameobj(_name,_sp,_x,_y,_flp,_dx,_dy,_w,_h)
 	flp = _flp or false,
 	dx = _dx or 0,
 	dy = _dy or 0,
-	max_dx = 2,
-	max_dy = 4,
+	max_dx = 3,
+	max_dy = 6,
 	frm =0,
 	wrap = false,
 	solid = true,
@@ -283,7 +285,7 @@ end
 
 --player global vars
 move_speed=20
-wrap=true
+wrap=false
 p2_offset=6
 max_dx=2 max_dy=3
 
@@ -306,11 +308,11 @@ function add_player(_plr_num,_x,_y,_dx,_dy,_w,_h)
 		y=_y,
 		dx=0 or _dx,
 		dy=0 or _dy,
-		max_dx=5,
+		max_dx=2,
 		max_dy=5,
+		acc=0.8,
 		w=8*_w or 8,
 		h=8*_h or 8,
-		acc=0.8,
 		grav_mul=1,
 		boost=5,
 		anim=0,
@@ -329,14 +331,14 @@ end
 function plr_input(p)
  -- left
 	if btn(⬅️,p.p) then
-		p.dx -= 1
+		p.dx -= p.acc
 		p.running=true
 		p.flp = true
 		collide_map(p,"left")
 	end
  -- right
  if btn(➡️,p.p) then
-  p.dx += 1
+  p.dx += p.acc
   p.flp = false
   p.running=true
   collide_map(p,"right")
@@ -347,48 +349,52 @@ function plr_input(p)
  -- up
  if btn(⬆️,p.p) then
  	if p.landed and p.can_jump then
-    p.dy -= p.boost * p.grav_mul
-    p.landed=false
-    sfx(sfx_jump)
-    p.flapping = false
-    p.can_jump=false
-   end
+   p.dy -= p.boost * p.grav_mul
+   p.landed=false
+   sfx(fx_jmp)
+   p.flapping = false
+   p.can_jump=false
+			p.can_flap=false
+  elseif p.falling and p.can_flap then
+  	p.flapping = true
+  end
+    
   collide_map(p,"up")
+ end
+ 
+ if not btn(⬆️,p.p) then
+ 	p.can_flap=true
  end
  
  --increase gravity when not holding jump
  if not btn(⬆️,p.p) and not p.landed and not p.landed then
- 	grav_mul=2
+ 	p.grav_mul=3
 	end
 	
  --reset jump
  if not btn(⬆️,p.p) and not p.can_jump then
  	p.can_jump = true
- 	p.can_flap = true
  	p.flapping = false
  end
  --check landed
  if p.landed then
- 	grav_mul=1
- 	p.flapping = false
- 	p.can_flap=false
+ 	p.grav_mul=1
  end
- --check flap
- if p.can_flap and btn(⬆️,p.p) and not p.landed and p.falling then
- 	p.flapping = true
- 	grav_mul=0.2
- end
- 
+
  -- down
  if btn(⬇️,p.p) then
  	if p.landed and collide_map(p,"down",0) then 
   end
  end
     
- if collide_map(p,"down",0) and not btn(⬆️) then
+ if collide_map(p,"down",0) and not btn(⬆️,p.p) then
  	p.can_jump = true
  	p.landed = true
  	p.falling = false
+ else
+ 	p.can_jump = false
+ 	p.landed = false
+ 	p.falling = true
  end
  
  -- button 1
@@ -403,7 +409,11 @@ end
 function plr_update(p)
 --update ojbects physics
 		p.dx *= friction
-		p.dy += gravity * grav_mul
+				
+		p.dy += gravity * p.grav_mul
+		if p.flapping then
+			p.dy = 0.5
+		end
 		
 		p.dx = limit_speed(p.dx,p.max_dx)
 		p.dy = limit_speed(p.dy,p.max_dy)
@@ -443,7 +453,7 @@ function plr_update(p)
 		p.y += p.dy
 		
 		--wrap
-		if p.wrap then
+		if wrap then
 				if p.x < 0 then
 					p.x = 125
 				elseif p.x  > 125 then
@@ -451,7 +461,7 @@ function plr_update(p)
 				end
 				if p.y < 0 then
 					p.y = 125
-				elseif s.y > 125 then
+				elseif p.y > 125 then
 					p.y = 0
 				end			
 		end	
@@ -520,10 +530,10 @@ c99ee99c009009000900000000000000000000900900009000900900009009000900000000000000
 00000000009009000090090000900900009009000090090000900900009009000090090000900900009009000090090000900900000000000444444000000000
 65558888888888888888555688888888656666560000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 65558888888888888888555650000005555555550000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-65555555599959955555555605000050d999d99d0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-65555555599959955555555600555500599959950000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-65555555599959955555555600000000599959950000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-65555555d999d99d5555555600000000599959950000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+65555555599959955555555605000050d99d999d0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+65555555599959955555555600555500599599950000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+65555555599959955555555600000000599599950000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+65555555d999d99d5555555600000000599599950000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 55555555555555555555555500000000888888880000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 65666656656666566566665600000000555555550000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 09955995599559955995599050000000555555550000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
