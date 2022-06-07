@@ -287,7 +287,6 @@ end
 move_speed=20
 wrap=false
 p2_offset=6
-max_dx=2 max_dy=3
 
 --animation indicies
 run_strt=1
