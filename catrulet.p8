@@ -16,6 +16,7 @@ p_states = {
 }
 
 function _init()
+	state = 2;
 	persons={}
 	palt(0,false)
 	palt(11,true)
@@ -43,20 +44,28 @@ end
 -->8
 --update
 function _update()
+	for p in all(persons) do
+		person_update(p)
+	end
 	kitty_update(kitty)
 	kitty_animate(kitty)
 end
 -->8
 --draw
+
 function _draw()
 	cls(15)
 	map(0,0)
+	france=false
 	for p in all(persons) do
-		draw_person(p)
+		person_draw(p)
+		if france == false then	france = collide_obj(p,kitty) end	
 	end
+	
 	kitty_draw(kitty)
 	print(rndr)
-	print(tostr(kitty.state))
+
+	print(tostr(france))
 end
 -->8
 --person
@@ -71,11 +80,24 @@ function add_person(_x,_y)
 	})
 end
 
-function draw_person(p)
+function person_update(p)
+	if collide_obj(p,kitty) then
+		p.sp = 5
+	else
+		p.sp = 1
+	end
+end
+
+function ouch(p)
+	p.sp = 9
+end
+
+function person_draw(p)
 	spr(p.sp,p.x,p.y,p.w,p.h)
 end
 -->8
 --kitty
+--get the stupid cat to collide once...
 kitty={	
 	sp=64,
 	x=0,
@@ -100,23 +122,25 @@ bite = 3,
 kitty_walk={64,68,72}
 kitty_bite={136,140}
 kitty_rubble={76,128,132}
-
 function kitty_update(p)
-	no_collide = true
-	for person in all(persons) do
-		if collide_obj(kitty,person) and p.collided == false then
-			no_collide = false
-			i = rnd(100)
-			rndr=i
-			if i<90 then
-				p.state = cat_states.rubble
-			else
-				p.state = cat_states.bite
-				p.collided = true
+	if state == game_states.deciding then
+		collided = false
+		for person in all(persons) do
+			if collide_obj(kitty,person) and collided==false then
+				collided=true
+				i = rnd(100)
+				rndr=i
+				if i<99 then
+					p.state = cat_states.rubble
+				else
+					p.state = cat_states.bite
+					state = game_states.wl
+				end
+				break
 			end
-		end
-		if no_collide then
-		 p.state = cat_states.walking
+			if collided ==false then
+			 p.state = cat_states.walking
+			end
 		end
 	end
 	
@@ -203,12 +227,12 @@ __gfx__
 00000000b44bbbbb66666866666686666bbbbbbbb44bbbbb66666866666686666bbbbbbbb44bbbbb66888866666666686bbbbbbb000000000000000000000000
 00000000bbbbbbbb66668886666888666bbbbbbbbbbbbbbb66668886666888666bbbbbbbbbbbbbbb66666886668886886bbbbbbb000000000000000000000000
 00000000bbbbbbb6666688866668886666bbbbbbbbbbbbb6666688866668886666bbbbbbbbbbbbb666688cc86666888666bbbbbb000000000000000000000000
-00000000bbbbbbb6666688866668886666bbbbbbbbbbbbb6666688866668886666bbbbbbbbbbbbb66688ccc88666888666bbbbbb000000000000000000000000
-00000000bbbbbbb6666688866668886666bbbbbb88bb88b6666688866668886666bbbbbbbbbbbbb6688ccc6888668c8666bbbbbb000000000000000000000000
-00000000bbbbbbb6666688866668886666bbbbbb888888b6666688866668886666bbbbbbbbbbbbb668cccc6868688c8866bbbbbb000000000000000000000000
-00000000bbbbbbb6666688866668886666bbbbbb888888b6666688866668886666bbbbbbbbbbbbb666cccc886688cc6866bbbbbb000000000000000000000000
-00000000bbbbbbb6666688866668886666bbbbbb88888bb6666688866668886666bbbbbbbbbbbbb666cccc866666cc6866bbbbbb000000000000000000000000
-00000000bbbbbbbb66666866666686666bbbbbbb8888bbbb66666866666686666bbbbbbbbbbbbbbb66cccc86666cccc66bbbbbbb000000000000000000000000
+00000000bbbbbbb6666688866668886666bbbbbbbbbbbbb6666686866668686666bbbbbbbbbbbbb66688ccc88666888666bbbbbb000000000000000000000000
+00000000bbbbbbb6666688866668886666bbbbbb88bb88b6666666666666666666bbbbbbbbbbbbb6688ccc6888668c8666bbbbbb000000000000000000000000
+00000000bbbbbbb6666688866668886666bbbbbb888888b6666666666666666666bbbbbbbbbbbbb668cccc6868688c8866bbbbbb000000000000000000000000
+00000000bbbbbbb6666688866668886666bbbbbb888888b6666666666666666666bbbbbbbbbbbbb666cccc886688cc6866bbbbbb000000000000000000000000
+00000000bbbbbbb6666688866668886666bbbbbb88888bb6666666666666666666bbbbbbbbbbbbb666cccc866666cc6866bbbbbb000000000000000000000000
+00000000bbbbbbbb66666866666686666bbbbbbb8888bbbb66666666666666666bbbbbbbbbbbbbbb66cccc86666cccc66bbbbbbb000000000000000000000000
 00000000bbbbbbbb66666666666666666bbbbbbbb88bbbbb66666666666666666bbbbbbbbbbbbbbb666ccc66666cccc66bbbbbbb000000000000000000000000
 00000000bbbbbbbbb666668666866666bbbbbbbbb8bbbbbbb666668888886666bbbbbbbbbbbbbbbbb66ccc66666cccc6bbbbbbbb000000000000000000000000
 00000000bbbbbbbbb666668666866666bbbbbbbbbbbbbbbbb666668888886666bbbbbbbbbbbbbbbbb6cccc66666cccc6bbbbbbbb000000000000000000000000
