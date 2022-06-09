@@ -54,7 +54,7 @@ end
 --draw
 
 function _draw()
-	cls(15)
+	cls(13)
 	map(0,0)
 	france=false
 	for p in all(persons) do
@@ -74,7 +74,7 @@ function add_person(_x,_y)
 		sp=1,
 		x =_x,
 		y=_y,
-		w=3,
+		w=4,
 		h=4,
 		state = 1,
 	})
@@ -109,7 +109,7 @@ kitty={
 	tick=0,
 	frame=1,
 	step=4,
-	collided=false,
+	col_obj=nil,
 }
 	
 cat_states={
@@ -118,19 +118,25 @@ walking = 1,
 rubble = 2,
 bite = 3,
 }
-	
+i=0
+
 kitty_walk={64,68,72}
-kitty_bite={136,140}
+kitty_bite={136,136,140}
 kitty_rubble={76,128,132}
+
 function kitty_update(p)
 	if state == game_states.deciding then
 		collided = false
 		for person in all(persons) do
 			if collide_obj(kitty,person) and collided==false then
+				if p.col_obj != person then
+					i = rnd(100)
+					p.col_obj = person
+				end				
 				collided=true
-				i = rnd(100)
+
 				rndr=i
-				if i<99 then
+				if i<80 then
 					p.state = cat_states.rubble
 				else
 					p.state = cat_states.bite
@@ -138,7 +144,7 @@ function kitty_update(p)
 				end
 				break
 			end
-			if collided ==false then
+			if collided == false then
 			 p.state = cat_states.walking
 			end
 		end
