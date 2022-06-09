@@ -149,7 +149,7 @@ end
 function collide_obj(obj,other)
 	local x1=obj.x local y1=obj.y
 	local x2=other.x local y2=other.y 
-	local h=1 local w=1
+	local h=obj.h/8 local w=obj.h/8
  
  --jeez
 	if x1 > x2 + w or x1 + w < x2 or y1 > y2+h or y1+h < y2 then
